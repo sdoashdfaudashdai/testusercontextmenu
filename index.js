@@ -106,10 +106,19 @@ h.push(b.before("openLazy",ActionSheet,function(args){
         un();
         try{
           // Find any array with items in the tree
-          console.log("[TR] res type:", typeof res, res&&res.type&&(res.type.name||res.type.displayName||res.type));
+          // Log the full tree as JSON to find the right structure
+          try{
+            var treeStr=JSON.stringify(res,function(k,v){
+              if(k==="type")return(v&&(v.name||v.displayName))||v;
+              if(k==="children"||k==="props")return v;
+              if(typeof v==="function")return"[fn]";
+              return v;
+            });
+            console.log("[TR] tree:",treeStr.slice(0,2000));
+            vendetta.ui.toasts.showToast("[TR] tree logged, check console",l.getAssetIDByName("ic_message_edit"));
+          }catch(logErr){console.log("[TR] log err",logErr);}
           var arr=findInReactTree(res,function(n){return Array.isArray(n)&&n.length>=1;});
-          if(!arr){console.log("[TR] no array found in ChannelLongPress tree");vendetta.ui.toasts.showToast("[TR] no arr",l.getAssetIDByName("ic_message_edit"));return;}
-          console.log("[TR] arr found, length:", arr.length);
+          if(!arr){console.log("[TR] no array found");vendetta.ui.toasts.showToast("[TR] no arr",l.getAssetIDByName("ic_message_edit"));return;}
           vendetta.ui.toasts.showToast("[TR] arr len:"+arr.length,l.getAssetIDByName("ic_message_edit"));
           var inputVal="";
           var {TextInput:TI}=vendetta.ui.components.General;
