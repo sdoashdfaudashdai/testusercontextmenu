@@ -52,6 +52,7 @@ var BR1=d.findByName("ButtonRow"),BR2=(d.findByProps("ActionSheetRow")||{}).Acti
 var ButtonRow=BR1||BR2||BR3||v;
 if(!ActionSheet)return;
 function findInReactTree(node,filter,depth){depth=depth||0;if(node==null||depth>120)return null;if(filter(node))return node;if(Array.isArray(node)){for(var k=0;k<node.length;k++){var rr=findInReactTree(node[k],filter,depth+1);if(rr)return rr;}return null;}if(typeof node==="object"){var kids=(node.props&&node.props.children)!=null?node.props.children:node.children;if(kids!=null)return findInReactTree(kids,filter,depth+1);}return null;}
+function isRow(c){if(!c||!c.type)return false;if(c.type===ButtonRow||c.type===BR1||c.type===BR2||c.type===BR3)return true;var nm=c.type.name||c.type.displayName;if(nm&&/ButtonRow|ActionSheetRow/i.test(nm))return true;if(c.props&&typeof c.props.onPress==="function")return true;return false;}
 h.push(b.before("openLazy",ActionSheet,function(args){
   try{
     if(args[1]!=="MessageLongPressActionSheet")return;
@@ -62,7 +63,6 @@ h.push(b.before("openLazy",ActionSheet,function(args){
       var un=b.after("default",instance,function(_,res){
         un();
         try{
-          function isRow(c){if(!c||!c.type)return false;if(c.type===ButtonRow||c.type===BR1||c.type===BR2||c.type===BR3)return true;var nm=c.type.name||c.type.displayName;if(nm&&/ButtonRow|ActionSheetRow/i.test(nm))return true;if(c.props&&typeof c.props.onPress==="function")return true;return false;}
           var arr=findInReactTree(res,function(n){return Array.isArray(n)&&n.length>=2&&n.some(isRow);});
           if(!arr)return;
           arr.unshift(React.createElement(ButtonRow,{
@@ -101,35 +101,37 @@ h.push(b.before("openLazy",ActionSheet,function(args){
       var un=b.after("default",instance,function(_,res){
         un();
         try{
-          var arr=findInReactTree(res,function(n){return Array.isArray(n)&&n.length>=1&&n.some(isRow);});
-          if(!arr)return;
-          arr.unshift(React.createElement(ButtonRow,{
-            label:"Set ID",
-            icon:l.getAssetIDByName("ic_message_edit"),
-            onPress:function(){
-              try{
-                ActionSheet.hideActionSheet();
-                if(vendetta&&vendetta.ui&&vendetta.ui.alerts&&vendetta.ui.alerts.showInputAlert){
-                  vendetta.ui.alerts.showInputAlert({
-                    title:"Set New ID",
-                    placeholder:"Paste new user ID...",
-                    confirmText:"Apply",
-                    onConfirm:function(val){
-                      val=val&&val.trim();
-                      if(!val)return;
-                      a.storage.rules=JSON.stringify([{find:oldId,replace:val,regex:false,ci:false}]);
-                      a.storage.enabled=true;
-                      try{R(val,new RegExp(T(oldId),"g"));}catch(e2){}
-                      vendetta.ui.toasts.showToast(oldId+" → "+val,l.getAssetIDByName("ic_message_edit"));
-                    }
-                  });
-                } else {
-                  a.storage.defaultFind=oldId;
-                  vendetta.ui.toasts.showToast("Set find to: "+oldId,l.getAssetIDByName("ic_message_edit"));
-                }
-              }catch(e3){}
-            }
-          }));
+          // Find any array with items in the tree
+          var arr=findInReactTree(res,function(n){return Array.isArray(n)&&n.length>=1;});
+          if(!arr){console.log("[TR] no array found in ChannelLongPress tree");return;}
+          var inputVal="";
+          var {TextInput:TI}=vendetta.ui.components.General;
+          // Add inline input row + confirm button
+          arr.unshift(
+            React.createElement(ButtonRow,{
+              label:"Confirm New ID",
+              icon:l.getAssetIDByName("ic_message_edit"),
+              onPress:function(){
+                try{
+                  if(!inputVal)return;
+                  a.storage.rules=JSON.stringify([{find:oldId,replace:inputVal,regex:false,ci:false}]);
+                  a.storage.enabled=true;
+                  try{R(inputVal,new RegExp(T(oldId),"g"));}catch(e2){}
+                  vendetta.ui.toasts.showToast(oldId+" → "+inputVal,l.getAssetIDByName("ic_message_edit"));
+                  ActionSheet.hideActionSheet();
+                }catch(e3){}
+              }
+            }),
+            React.createElement(vendetta.ui.components.General.View,{style:{paddingHorizontal:16,paddingVertical:8}},
+              React.createElement(TI,{
+                placeholder:"New user ID...",
+                placeholderTextColor:"#888",
+                keyboardType:"numeric",
+                style:{backgroundColor:"#2b2d31",color:"#fff",borderRadius:8,padding:10,fontSize:15},
+                onChangeText:function(v){inputVal=v;},
+              })
+            )
+          );
         }catch(e4){}
       });
     });
