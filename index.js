@@ -55,6 +55,11 @@ function findInReactTree(node,filter,depth){depth=depth||0;if(node==null||depth>
 function isRow(c){if(!c||!c.type)return false;if(c.type===ButtonRow||c.type===BR1||c.type===BR2||c.type===BR3)return true;var nm=c.type.name||c.type.displayName;if(nm&&/ButtonRow|ActionSheetRow/i.test(nm))return true;if(c.props&&typeof c.props.onPress==="function")return true;return false;}
 h.push(b.before("openLazy",ActionSheet,function(args){
   try{
+    // Log ALL sheet names
+    vendetta.ui.toasts.showToast("sheet:"+String(args[1]).slice(0,30),l.getAssetIDByName("ic_message_edit"));
+    console.log("[TR] sheet:",args[1]);
+  }catch(_){}
+  try{
     if(args[1]!=="MessageLongPressActionSheet")return;
     var sheetProps=args[2]||{};var message=sheetProps.message;if(!message)return;
     var idMatch=String(message.content||"").match(/\d{15,25}/);if(!idMatch)return;
