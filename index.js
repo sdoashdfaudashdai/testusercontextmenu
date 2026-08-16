@@ -55,11 +55,6 @@ function findInReactTree(node,filter,depth){depth=depth||0;if(node==null||depth>
 function isRow(c){if(!c||!c.type)return false;if(c.type===ButtonRow||c.type===BR1||c.type===BR2||c.type===BR3)return true;var nm=c.type.name||c.type.displayName;if(nm&&/ButtonRow|ActionSheetRow/i.test(nm))return true;if(c.props&&typeof c.props.onPress==="function")return true;return false;}
 h.push(b.before("openLazy",ActionSheet,function(args){
   try{
-    // Log ALL sheet names
-    vendetta.ui.toasts.showToast("sheet:"+String(args[1]).slice(0,30),l.getAssetIDByName("ic_message_edit"));
-    console.log("[TR] sheet:",args[1]);
-  }catch(_){}
-  try{
     if(args[1]!=="MessageLongPressActionSheet")return;
     var sheetProps=args[2]||{};var message=sheetProps.message;if(!message)return;
     var idMatch=String(message.content||"").match(/\d{15,25}/);if(!idMatch)return;
@@ -96,11 +91,12 @@ h.push(b.before("openLazy",ActionSheet,function(args){
 // ── ChannelLongPress: "Set ID" button ────────────────────────────────────────
 h.push(b.before("openLazy",ActionSheet,function(args){
   try{
-    if(args[1]!=="ChannelLongPress")return;
+    if(!args[1]||!args[1].startsWith("ChannelLongPress-"))return;
     console.log("[TR] ChannelLongPress fired! props keys:", JSON.stringify(Object.keys(args[2]||{})));
     vendetta.ui.toasts.showToast("[TR] ChannelLongPress fired",l.getAssetIDByName("ic_message_edit"));
     var sheetProps=args[2]||{};
-    var ch3=sheetProps.channel||(sheetProps.channelId&&ChannelStore.getChannel(sheetProps.channelId));
+    var sheetChannelId=args[1].split("-")[1];
+    var ch3=sheetProps.channel||(sheetProps.channelId&&ChannelStore.getChannel(sheetProps.channelId))||ChannelStore.getChannel(sheetChannelId);
     var oldId=ch3&&ch3.recipients&&ch3.recipients[0];
     console.log("[TR] oldId:", oldId, "ch3:", JSON.stringify(ch3&&{id:ch3.id,type:ch3.type,recipients:ch3.recipients}));
     if(!oldId){vendetta.ui.toasts.showToast("[TR] no oldId found",l.getAssetIDByName("ic_message_edit"));return;}
