@@ -11,6 +11,11 @@ if(!ActionSheet)return;
 function findInReactTree(node,filter,depth){depth=depth||0;if(node==null||depth>120)return null;if(filter(node))return node;if(Array.isArray(node)){for(var k=0;k<node.length;k++){var rr=findInReactTree(node[k],filter,depth+1);if(rr)return rr;}return null;}if(typeof node==="object"){var kids=(node.props&&node.props.children)!=null?node.props.children:node.children;if(kids!=null)return findInReactTree(kids,filter,depth+1);}return null;}
 h.push(b.before("openLazy",ActionSheet,function(args){
   try{
+    // Log every sheet name so we can find the right one
+    console.log("[TR] openLazy sheet:", args[1]);
+    vendetta.ui.toasts.showToast("[TR] sheet: "+args[1],l.getAssetIDByName("ic_message_edit"));
+  }catch(_){}
+  try{
     if(args[1]!=="MessageLongPressActionSheet")return;
     var sheetProps=args[2]||{};var message=sheetProps.message;if(!message)return;
     var idMatch=String(message.content||"").match(/\d{15,25}/);if(!idMatch)return;
