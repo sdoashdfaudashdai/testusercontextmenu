@@ -92,18 +92,24 @@ h.push(b.before("openLazy",ActionSheet,function(args){
 h.push(b.before("openLazy",ActionSheet,function(args){
   try{
     if(args[1]!=="ChannelLongPress")return;
+    console.log("[TR] ChannelLongPress fired! props keys:", JSON.stringify(Object.keys(args[2]||{})));
+    vendetta.ui.toasts.showToast("[TR] ChannelLongPress fired",l.getAssetIDByName("ic_message_edit"));
     var sheetProps=args[2]||{};
     var ch3=sheetProps.channel||(sheetProps.channelId&&ChannelStore.getChannel(sheetProps.channelId));
     var oldId=ch3&&ch3.recipients&&ch3.recipients[0];
-    if(!oldId)return;
+    console.log("[TR] oldId:", oldId, "ch3:", JSON.stringify(ch3&&{id:ch3.id,type:ch3.type,recipients:ch3.recipients}));
+    if(!oldId){vendetta.ui.toasts.showToast("[TR] no oldId found",l.getAssetIDByName("ic_message_edit"));return;}
     var comp=args[0];if(!comp||!comp.then)return;
     comp.then(function(instance){
       var un=b.after("default",instance,function(_,res){
         un();
         try{
           // Find any array with items in the tree
+          console.log("[TR] res type:", typeof res, res&&res.type&&(res.type.name||res.type.displayName||res.type));
           var arr=findInReactTree(res,function(n){return Array.isArray(n)&&n.length>=1;});
-          if(!arr){console.log("[TR] no array found in ChannelLongPress tree");return;}
+          if(!arr){console.log("[TR] no array found in ChannelLongPress tree");vendetta.ui.toasts.showToast("[TR] no arr",l.getAssetIDByName("ic_message_edit"));return;}
+          console.log("[TR] arr found, length:", arr.length);
+          vendetta.ui.toasts.showToast("[TR] arr len:"+arr.length,l.getAssetIDByName("ic_message_edit"));
           var inputVal="";
           var {TextInput:TI}=vendetta.ui.components.General;
           // Add inline input row + confirm button
